@@ -1,0 +1,82 @@
+
+html {
+  height: 100%;
+  background:#fff;
+}
+body{
+  height:100%;
+  background:rgb(134,0,134);
+  font-size:15px;
+}
+ul{
+  list-style-type:none;
+  padding-left:0px;
+}
+.nav{
+  width:100%;
+}
+.shell{
+  height:88%;
+  
+}
+.header{
+  
+}
+.item_search{
+  background:#aaa;
+  height:100%;
+}
+.item_header{
+  
+}
+.server_dd{
+  
+}
+.item_form{
+  
+}
+.wtf_item{
+  
+}
+.item_results{
+  
+}
+.guild_search{
+  background:#bbb;
+  height:100%;
+}
+.guild_header{
+  
+}
+.guild_form{
+  
+}
+.wtf_guild{
+  
+}
+.guild_results{
+  
+}
+.footer{
+ 
+  background:#222;
+  color:#999;
+  position:fixed;
+  bottom:0px;
+  width:100%;
+  
+}
+.name{
+/*float:left;*/
+text-align:right;
+margin-bottom:20px;
+/*padding-left:72px;*/
+font-size:24px;
+}
+.authors{
+margin:22px 0px 10px 0px;
+/*padding:1px 1px 1px 1px;*/
+font-size:17px;
+text-align:left;
+
+}

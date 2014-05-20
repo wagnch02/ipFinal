@@ -1,0 +1,202 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap.min.css">
+<link rel="stylesheet" href="/static/guilds.css">
+<script src="http://code.jquery.com/jquery-latest.js"></script>
+<script type="text/javascript" src="/js/lib/bootstrap-2.0.2.js"></script>
+</head>
+<body onload="getGuilds()">
+<ul class="nav navbar-nav navbar-inverse">
+  <h4 class="navbar-text">WOWSEARCH</h4>
+  <li><a href="/index.html">Search</a></li>
+  <li><a href="/items.html">Items</a></li>
+  <li><a href="/guilds.html">Guilds</a></li>
+</ul>
+<div class="shell col-sm-10 col-sm-offset-1 col-md-10 col-md-offset-1">
+<script type="text/javascript">
+function getGuilds() {
+   $.ajax({
+     type: "POST",
+     url: "/guilds/get",
+     contentType: 'application/json;charset=UTF-8',
+     success: function(result) {
+        var stopTrack = document.createElement("BUTTON");
+        var stopText = document.createTextNode("Stop Tracking");
+        stopTrack.id="stopTrackButton";
+        stopTrack.appendChild(stopText);
+        stopTrack.onclick=function() {
+           var ul = document.getElementById('gResults');
+           for (var x = 1; x < ul.childNodes.length; x++) {
+              var cb = document.getElementById('guild'+x.toString());
+              var id = "guild"+x.toString();
+              var id2 = "button"+x.toString();
+              if (cb != null && cb.checked) {
+                 var dbuser = "guesto";
+                 var dbguild = cb.name;
+	         var dbserver = cb.value;
+		 var nud = {
+		   "user_name" : dbguild,
+		   "guild" : dbguild,
+		   "server" : dbserver
+		 }
+
+		 $.ajax({
+		   type: "POST",
+		   url: "/guilds/delete",
+		   data: JSON.stringify(nud, null, '\t'),
+		   contentType: 'application/json;charset=UTF-8',
+		   success: function(result) {
+		     alert("No Longer Tracking "+result.toString());
+		   }
+		 });
+                 $("#"+id).remove();
+                 $("#"+id2).remove();
+              }
+           }
+        }
+        var ul = document.getElementById('gResults');
+        stopLi=document.createElement('li');
+        stopLi.appendChild(stopTrack);
+        ul.appendChild(stopLi);
+
+        var gSplit = result.split(":");
+        for (var y = 1; y < gSplit.length; y++) {
+           var newLi = document.createElement('li');
+           var boxText = gSplit[y].split(",");
+           var ul = document.getElementById('gResults');
+           var cb = document.createElement( "input" );
+           cb.type = "checkbox";
+           cb.id = "guild"+ul.childNodes.length.toString();
+           cb.value = boxText[1];
+           cb.name = boxText[0];
+           cb.checked = false;
+           newLi.appendChild(cb);
+           var text = document.createElement("BUTTON");
+           var t=document.createTextNode(boxText[0]);
+           text.id = "button"+ul.childNodes.length.toString();
+           text.name = boxText[0];
+           text.value = boxText[1];
+           text.appendChild(t);
+           text.onclick=function() {
+              var dbguild = this.name;
+              var dbserver = this.value;
+	      var gsplit = dbguild.split(" ");
+              var gString = gsplit[0];
+              if (gsplit.length != 1) {
+                  for (var i = 1; i < gsplit.length; i++) {
+                     gString += "%20";
+                     gString += gsplit[i];
+                  }
+               }
+              $.ajax({
+                url: "http://us.battle.net/api/wow/guild/"+this.value+"/"+gString+"?fields=achievements,members,news&jsonp=guildInfo",
+	        type: 'GET',
+		dataType: 'jsonp'
+               });
+           }
+           newLi.appendChild(text);
+           ul.appendChild(newLi);
+        }
+     }
+   });
+}
+</script>
+<script type="text/javascript">
+function guildInfo(data) {
+   $("#news").empty();
+   $("#members").empty();
+   $("#achievements").empty();
+   var gn = document.getElementById("gn");
+   var gl = document.getElementById("gl");
+   var ap = document.getElementById("ap");
+   gn.innerHTML="Guild: "+data.name+", "+data.realm;
+   gl.innerHTML="Level: "+data.level;
+   ap.innerHTML="Achievement Points: "+data.achievementPoints;
+   for (var g = 0; g < 15; g++) {
+      var character = JSON.stringify(data.members[g], null, "\t");
+      var cSplit = character.split(":");
+      var ch = cSplit[2];
+      var cs = ch.split(",");
+      var c = cs[0].replace(/"/g, "");
+      var ul = document.getElementById("members");
+      var li = document.createElement('li');
+      var txt = document.createTextNode(c);
+      li.appendChild(txt);
+      ul.appendChild(li);
+   }
+   for (var h = 1; h <= 10; h++) {
+      var newsItem = JSON.stringify(data.news[h], null, "\t");
+      var nSplit = newsItem.split(":");
+      var nws = nSplit[2];
+      var nw = nws.split(",");
+      var n = nw[0].replace(/"/g, "");
+      var value = nSplit[4].substring(0, nSplit[4].length - 2);
+      n = n + " recieved loot worth "+value+"!";
+      var nul = document.getElementById("news");
+      var nli = document.createElement('li');
+      var txxt = document.createTextNode(n);
+      nli.appendChild(txxt);
+      nul.appendChild(nli);
+   }
+   var achieve = JSON.stringify(data.achievements, null, "\t");
+   var ach = achieve.split(":");
+   var ac = ach[1];
+   var achnums = ac.split(",");
+   var aul = document.getElementById("achievements");
+   var ali = document.createElement('li');
+   var txxxt = document.createTextNode("Completed Guild Achievements:");
+   ali.appendChild(txxxt);
+   aul.appendChild(ali);
+   for (var a = 1; a <= 15; a++) {
+      txxxt = document.createTextNode(achnums[a]);
+      aul = document.getElementById("achievements");
+      ali = document.createElement('li');
+      ali.appendChild(txxxt);
+      aul.appendChild(ali);
+   }
+}
+</script>
+<div class="tracked_guilds col-sm-2 col-md-2">
+  <div class="tg_header">
+    <h3>Tracked Guilds</h3>
+  </div>
+  <ul id="gResults"></ul>
+</div>
+<div class="guild_info col-sm-10 col-md-10">
+  <div class="selected_guild_header col-sm-12 col-md-12">
+    <p id="gn">Guild Name: </p><p id="gl">Level: </p><p id="ap">Achievement Points: </p>
+  </div>
+  <div class="list_shell">
+  <div class="achievements col-sm-4 col-md-4">
+    <div class="tg_header">
+      <h3>Achievements</h3>
+    </div>
+    <ul id="achievements"></ul>
+  </div>
+  <div class="newss col-sm-4 col-md-4">
+    <div class="tg_header">
+      <h3>News</h3>
+    </div>
+    <ul id="news"></ul>
+  </div>
+  <div class="members col-sm-3 col-md-3">
+    <div class="tg_header">
+      <h3>Members</h3>
+    </div>
+    <ul id="members"></ul>
+  </div>
+  </div>
+    
+</div>
+</div>
+<div class="footer">
+  <div class="container">
+   
+    <h3 class="name col-sm-6 col-md-6">WOWSEARCH</h3>
+    <p class="authors col-sm-6 col-md-6">by Nick Vondrashek and Chris Wagner</p>
+    
+  </div>
+</div>
+</body>
+</html>
